@@ -45,8 +45,6 @@ def process_image_data(image_bytes, contact_width_mm, threshold_percent, tyre_na
         bnw_image = Image.fromarray(imx3)
 
         # --- Gap Filling Logic (painter function and array manipulation) ---
-        # *** THIS IS THE CORRECTED STEP TO MATCH THE ORIGINAL LOGIC ***
-        # Convert the black and white image to 1-bit mode, which mimics the original script's file operation.
         im = bnw_image.convert('1')
         
         na = np.array(im)
@@ -83,37 +81,35 @@ def process_image_data(image_bytes, contact_width_mm, threshold_percent, tyre_na
             st.error("Image processing failed after filtering quadrants. Image may be too small or irregular.")
             return None
 
-        # The rest of your complex painter and array logic remains the same
-        arr2D_TL_Act_Fill = deepcopy(Cells_Deepcopy[0])
-        arr2D_TR_Act_Fill = deepcopy(Cells_Deepcopy[1])
-        arr2D_BL_Act_Fill = deepcopy(Cells_Deepcopy[2])
-        arr2D_BR_Act_Fill = deepcopy(Cells_Deepcopy[3])
-
+        # Define the painter function to fill vertical gaps
         def painter(array):
             a1, b1 = array.shape
             for j in range(b1):
                 pollute = 2
                 for i in range(a1):
-                    if not array[i][j]:
+                    if not array[i][j]: # if pixel is black
                         pollute = 1
-                    elif array[i][j] and pollute != 2:
-                        array[i][j] = False
+                    elif array[i][j] and pollute != 2: # if pixel is white and we've seen a black pixel
+                        array[i][j] = False # fill the gap
             return array
 
-        arr2D_TL_Act_Fill_painted = painter(deepcopy(arr2D_TL_Act_Fill))
-        arr2D_TR_Act_Fill_painted = painter(deepcopy(arr2D_TR_Act_Fill))
-        arr2D_BL_Act_Fill_painted = painter(deepcopy(arr2D_BL_Act_Fill))
-        arr2D_BR_Act_Fill_painted = painter(deepcopy(arr2D_BR_Act_Fill))
+        # *** CORRECTED LOGIC TO REPLICATE ORIGINAL SCRIPT'S INTENT ***
+        # Process each of the four quadrants
+        arr2D_TL_Act = deepcopy(Cells_Deepcopy[0])
+        arr2D_TR_Act = deepcopy(Cells_Deepcopy[1])
+        arr2D_BL_Act = deepcopy(Cells_Deepcopy[2])
+        arr2D_BR_Act = deepcopy(Cells_Deepcopy[3])
 
-        array_listF =  [np.logical_or(np.flipud(arr2D_TL_Act_Fill_painted), np.flipud(arr2D_TL_Act_Fill)),
-                        np.logical_or(np.flipud(arr2D_TR_Act_Fill_painted), np.flipud(arr2D_TR_Act_Fill)),
-                        np.logical_or(painter(deepcopy(arr2D_BL_Act_Fill)), np.flipud(arr2D_BL_Act_Fill)),
-                        np.logical_or(painter(deepcopy(arr2D_BR_Act_Fill)), np.flipud(arr2D_BR_Act_Fill))]
+        # Paint the original and a flipped version to fill gaps from both directions
+        # Then combine them to get a fully filled quadrant
+        final_TL = np.logical_or(painter(deepcopy(np.flipud(arr2D_TL_Act))), np.flipud(painter(deepcopy(arr2D_TL_Act))))
+        final_TR = np.logical_or(painter(deepcopy(np.flipud(arr2D_TR_Act))), np.flipud(painter(deepcopy(arr2D_TR_Act))))
+        final_BL = np.logical_or(painter(deepcopy(np.flipud(arr2D_BL_Act))), np.flipud(painter(deepcopy(arr2D_BL_Act))))
+        final_BR = np.logical_or(painter(deepcopy(np.flipud(arr2D_BR_Act))), np.flipud(painter(deepcopy(arr2D_BR_Act))))
 
-        arrT = np.hstack((array_listF[0], array_listF[1]))
-        arrT = np.flipud(arrT)
-        arrB = np.hstack((array_listF[2], array_listF[3]))
-        arrB = np.flipud(arrB)
+        # Recombine the fully processed quadrants into the final image
+        arrT = np.hstack((final_TL, final_TR))
+        arrB = np.hstack((final_BL, final_BR))
         arr2D3 = np.vstack((arrT, arrB)) # This is the final filled image array
 
         # --- Calculations ---

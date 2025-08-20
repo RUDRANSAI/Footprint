@@ -94,22 +94,39 @@ def process_image_data(image_bytes, contact_width_mm, threshold_percent, tyre_na
             return array
 
         # *** CORRECTED LOGIC TO REPLICATE ORIGINAL SCRIPT'S INTENT ***
-        # Process each of the four quadrants
-        arr2D_TL_Act = deepcopy(Cells_Deepcopy[0])
-        arr2D_TR_Act = deepcopy(Cells_Deepcopy[1])
-        arr2D_BL_Act = deepcopy(Cells_Deepcopy[2])
-        arr2D_BR_Act = deepcopy(Cells_Deepcopy[3])
+        # Create copies for processing
+        arr2D_TL_Act_Fill = deepcopy(Cells_Deepcopy[0])
+        arr2D_TR_Act_Fill = deepcopy(Cells_Deepcopy[1])
+        arr2D_BL_Act_Fill = deepcopy(Cells_Deepcopy[2])
+        arr2D_BR_Act_Fill = deepcopy(Cells_Deepcopy[3])
 
-        # Paint the original and a flipped version to fill gaps from both directions
-        # Then combine them to get a fully filled quadrant
-        final_TL = np.logical_or(painter(deepcopy(np.flipud(arr2D_TL_Act))), np.flipud(painter(deepcopy(arr2D_TL_Act))))
-        final_TR = np.logical_or(painter(deepcopy(np.flipud(arr2D_TR_Act))), np.flipud(painter(deepcopy(arr2D_TR_Act))))
-        final_BL = np.logical_or(painter(deepcopy(np.flipud(arr2D_BL_Act))), np.flipud(painter(deepcopy(arr2D_BL_Act))))
-        final_BR = np.logical_or(painter(deepcopy(np.flipud(arr2D_BR_Act))), np.flipud(painter(deepcopy(arr2D_BR_Act))))
+        arr2D_TL_Flp_Fill = deepcopy(np.flipud(arr2D_TL_Act_Fill))
+        arr2D_TR_Flp_Fill = deepcopy(np.flipud(arr2D_TR_Act_Fill))
+        arr2D_BL_Flp_Fill = deepcopy(np.flipud(arr2D_BL_Act_Fill))
+        arr2D_BR_Flp_Fill = deepcopy(np.flipud(arr2D_BR_Act_Fill))
+        
+        # Process top and bottom cells using painter function
+        array_listT = [arr2D_TL_Flp_Fill, arr2D_TR_Flp_Fill, arr2D_TL_Act_Fill, arr2D_TR_Act_Fill]
+        array_listB = [arr2D_BL_Flp_Fill, arr2D_BR_Flp_Fill, arr2D_BL_Act_Fill, arr2D_BR_Act_Fill]
+        
+        for item in array_listT:
+             item = painter(item)
+        
+        for item in array_listB:
+             item = painter(item)
+             item = np.flipud(item)
 
+        # Combine filled images using logical OR
+        array_listF =  [np.logical_or(arr2D_TL_Flp_Fill, np.flipud(arr2D_TL_Act_Fill)),
+                        np.logical_or(arr2D_TR_Flp_Fill, np.flipud(arr2D_TR_Act_Fill)),
+                        np.logical_or(arr2D_BL_Flp_Fill, np.flipud(arr2D_BL_Act_Fill)),
+                        np.logical_or(arr2D_BR_Flp_Fill, np.flipud(arr2D_BR_Act_Fill))]    
+        
         # Recombine the fully processed quadrants into the final image
-        arrT = np.hstack((final_TL, final_TR))
-        arrB = np.hstack((final_BL, final_BR))
+        arrT = np.hstack((array_listF[0], array_listF[1]))
+        arrT = np.flipud(arrT)
+        arrB = np.hstack((array_listF[2], array_listF[3]))
+        arrB = np.flipud(arrB)
         arr2D3 = np.vstack((arrT, arrB)) # This is the final filled image array
 
         # --- Calculations ---
@@ -142,7 +159,7 @@ def process_image_data(image_bytes, contact_width_mm, threshold_percent, tyre_na
         ax[0].set_title("Original Image", fontsize=font_number, fontweight='bold', color='green')
         ax[0].axis("off")
         ax[0].text(0.5, -0.05, f"Contact Width: {contact_width_mm} mm", transform=ax[0].transAxes, ha='center', fontsize=int(font_number*0.9))
-        ax[0].text(0.5, -0.12, f"Contact Length: {contact_length_mm} mm", transform=ax[0].transAxes, ha='center', fontsize=int(font_number*0.9))
+        ax[0].text(0.5, -0.11, f"Contact Length: {contact_length_mm} mm", transform=ax[0].transAxes, ha='center', fontsize=int(font_number*0.9))
 
         # Processed (B&W) Image
         ax[1].imshow(imx3, cmap='gray')

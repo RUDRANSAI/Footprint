@@ -147,6 +147,8 @@ def process_image_data(image_bytes, contact_width_mm, threshold_percent, tyre_na
         # --- Plotting ---
         height, width = temp.size
         font_number = min(int(height / 40), 13)
+        result_text_offset_y= -(0.02*font_number)
+        result_text_offset_x = 0.5
         
         fig, ax = plt.subplots(1, 3, figsize=(12, 4))
         fig.tight_layout(pad=2.0)
@@ -158,20 +160,20 @@ def process_image_data(image_bytes, contact_width_mm, threshold_percent, tyre_na
         ax[0].imshow(temp, cmap='gray')
         ax[0].set_title("Original Image", fontsize=font_number, fontweight='bold', color='green')
         ax[0].axis("off")
-        ax[0].text(0.5, -0.05, f"Contact Width: {contact_width_mm} mm", transform=ax[0].transAxes, ha='center', fontsize=int(font_number*0.9))
-        ax[0].text(0.5, -0.11, f"Contact Length: {contact_length_mm} mm", transform=ax[0].transAxes, ha='center', fontsize=int(font_number*0.9))
+        ax[0].text(result_text_offset_x,result_text_offset_y, f"Contact Width: {contact_width_mm} mm", transform=ax[0].transAxes, ha='center', fontsize=int(font_number*0.9), color='green')
+        ax[0].text(result_text_offset_x,result_text_offset_y-0.2, f"Contact Length: {contact_length_mm} mm", transform=ax[0].transAxes, ha='center', fontsize=int(font_number*0.9))
 
         # Processed (B&W) Image
         ax[1].imshow(imx3, cmap='gray')
         ax[1].set_title("Processed Image", fontsize=font_number, fontweight='bold')
         ax[1].axis("off")
-        ax[1].text(0.5, -0.05, f"Net Area: {net_area_in2} sq.in", transform=ax[1].transAxes, ha='center', fontsize=int(font_number*0.9))
+        ax[1].text(result_text_offset_x,result_text_offset_y, f"Net Area: {net_area_in2} sq.in", transform=ax[1].transAxes, ha='center', fontsize=int(font_number*0.9))
 
         # Filled Image
         ax[2].imshow(arr2D3, cmap='gray')
         ax[2].set_title("Filled Image", fontsize=font_number, fontweight='bold')
         ax[2].axis("off")
-        ax[2].text(0.5, -0.05, f"Gross Area: {gross_area_in2} sq.in", transform=ax[2].transAxes, ha='center', fontsize=int(font_number*0.9))
+        ax[2].text(result_text_offset_x,result_text_offset_y, f"Gross Area: {gross_area_in2} sq.in", transform=ax[2].transAxes, ha='center', fontsize=int(font_number*0.9))
 
         return fig
 

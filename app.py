@@ -146,7 +146,7 @@ def process_image_data(image_bytes, contact_width_mm, threshold_percent, tyre_na
 
         # --- Plotting ---
         height, width = temp.size
-        font_number = min(int(height / 40), 13)
+        font_number = min(int(height / 30), 13)
         result_text_offset_y= -(0.02*font_number)
         result_text_offset_x = 0.5
         
